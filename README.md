@@ -5,5 +5,5 @@ This is a small application which written in C++17, it has following modules
 - demo.cc is a demo implementation.
 
 ## How to compile and run the deom
-_make_ compiles the applicaion and output the binary file DemoApp
+_make_ compiles the applicaion and output the binary file DemoApp <br />
 _./DemoApp_ runs the demo app.
