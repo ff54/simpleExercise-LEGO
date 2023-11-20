@@ -3,14 +3,14 @@
 /*
  * =====================================================================================
  *
- *       Filename:  deviceManager.h
+ *       Filename:  deviceManager.hh
  *
  *    Description: simple device manager  which allow its underlying sensor to post
  *                 events (sensor data). This class holds a simple evt queue to
  *                 listen events from sensor, a scheduler to fetch data from sensor
  *                 and local cache to keep all historical device states
  *
- *        Version:  1.0
+ *        Version:  0.9.1
  *       Revision:  none
  *       Compiler:  g++
  *
