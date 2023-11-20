@@ -67,7 +67,7 @@ public:
      * \brief sensor or deivece itself may push events to the DeviceManager eventLoop. DeviceManager will
      *        handle evt based on its type.
      */
-    void pushEventToDevice(std::shared_ptr<utils::Event> evt);
+    bool pushEventToDevice(std::shared_ptr<utils::Event> evt);
 
     /**
      * \brief      register a function/task to fetch sensor data in a fixed frequency.
@@ -84,7 +84,7 @@ public:
 
     std::string getName() const {return m_name;}
     Status getStatus() const {return m_status;}
-    std::string getVersion() const {return m_version;}
+    std::string getVersion() const {return std::to_string(m_version);}
     std::string getLastUpdatedSensor() const; 
 private:
     DeviceManager();//singletone
@@ -103,7 +103,7 @@ private:
     //keep sensor name, sensor data and last updated time
     std::unordered_map<std::string, std::pair<std::time_t, sensor::SensorDataMap>> m_cache; 
     std::string m_name{"TestDevice"};
-    std::string m_version;
+    float m_version = 0.1;
 };
 
 } //end of namespace device

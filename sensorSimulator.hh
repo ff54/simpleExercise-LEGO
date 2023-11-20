@@ -9,7 +9,11 @@
 #include <string>
 #include <unordered_map>
 #include "utils.hh"
+namespace device {
+class DeviceManager;
+}
 namespace sensor {
+
 
 //improvment: we use string to represent value now, but it can be replaced with std::any or template. Then we can pass
 //any type of value.
@@ -26,14 +30,19 @@ struct SensorEvent: public utils::Event  {
 
 class SensorSimulator {
 public:
-    SensorSimulator(const std::string& deviceName, int freq = 2);
+    SensorSimulator(const std::string& name, std::shared_ptr<device::DeviceManager>& dm, int freq = 2);
     void start();
     virtual ~SensorSimulator();
     virtual void myJob() = 0;
+protected:
+    std::string m_name;
+    std::shared_ptr<device::DeviceManager> m_dm;
+    int m_freq;
 private:
     void run();
-    std::string m_name;
-    int m_freq;
+    std::mutex m_schedulerMutex;
+    std::thread m_scheduler;
+    bool m_running = false;
 };
 
 }//end of namespace sensor

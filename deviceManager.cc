@@ -1,4 +1,3 @@
-#include <iostream>
 #include <future>
 
 #include "deviceManager.hh"
@@ -53,7 +52,7 @@ DeviceManager::~DeviceManager() {
 
 
 void DeviceManager::start() {
-    utils::Log(utils::DEBUG, "starting the deviceManager...");
+    utils::Log(utils::DEBUG, "starting the DeviceManager: %s...", m_name.c_str());
     if (m_running) {
         return;
     }
@@ -71,6 +70,10 @@ void DeviceManager::start() {
 }
 
 void DeviceManager::stop() {
+    if (!m_running) {
+        utils::Log(utils::ERROR, "DeviceManager is not running...");
+        return;
+    }
     utils::Log(utils::DEBUG, "stopping the deviceManager...");
     unique_lock<mutex> lock(m_mutex);
     m_running = false;
@@ -79,6 +82,8 @@ void DeviceManager::stop() {
     queue<shared_ptr<utils::Event>>().swap(m_queue);
     priority_queue<RepeatedTask>().swap(m_taskQ);
     m_status = OFF;
+    if (m_thread.joinable())
+        m_thread.join();
     utils::Log(utils::DEBUG, "DeviceManager stopped...");
 }
 
@@ -100,62 +105,69 @@ void DeviceManager::run() {
                 if (!res.second) {
                     res.first->second.first = t;
                     for (auto& p : sensorEvt->data) {
+                        char buf[20];
+                        strftime(buf, 20, "%d.%m.%Y %H:%M:%S", localtime(&t));
+                        utils::Log(utils::INFO, "Get Data from %s # %s:%s @%s#",
+                                    sensorEvt->name.c_str(), p.first.c_str(), p.second.c_str(), buf);
                         res.first->second.second[p.first] = p.second;
                     }
                 }
-                utils::Log(utils::INFO, "Consume an event...");
             }
         }
         else if (event->evtType == utils::Event::DEVICEINFO) {
-            //TODO
+            std::shared_ptr<DeviceEvent> evt = std::dynamic_pointer_cast<DeviceEvent> (event);
+            if (evt->name == "update") {
+                break;
+            }
+        }
+        else {
+            //nothing
         }
         m_queue.pop();
         lock.unlock();
-
     }
 }
 
 void DeviceManager::runScheduler() {
     if (!m_taskVector.empty()) {
-        auto now = std::chrono::system_clock::now();
         for (auto& t : m_taskVector) {
-            t.m_time = now + std::chrono::seconds(t.m_second);
+            t.m_time = chrono::system_clock::now() + std::chrono::seconds(t.m_second);
             m_taskQ.push(t);
         }
     }
     while (m_running) {
-        auto now = std::chrono::system_clock::now();
+        auto now = chrono::system_clock::now();
         if (!m_taskQ.empty()) {
             while(!m_taskQ.empty() && m_taskQ.top().m_time <= now) {
-                unique_lock<mutex> lock{m_schedulerMutex, std::defer_lock};
+                unique_lock<mutex> lock{m_schedulerMutex, defer_lock};
                 RepeatedTask t = m_taskQ.top();
                 sensor::SensorDataMap temp;
                 t.fetch(t.m_name, temp);
-                utils::Log(utils::INFO, "RepeatedTask, fetching data from sensor:%s", t.m_name.c_str());
+                //utils::Log(utils::INFO, "RepeatedTask, fetching data from sensor:%s", t.m_name.c_str());
                 lock.lock();
                 m_taskQ.pop();
-                now = std::chrono::system_clock::now(); 
-                t.m_time = now +  std::chrono::seconds(t.m_second);
+                t.m_time = chrono::system_clock::now() + chrono::seconds(t.m_second);
                 m_taskQ.push(t);
                 lock.unlock();
             }
-            this_thread::sleep_for(m_taskQ.top().m_time - now);
+            this_thread::sleep_for(m_taskQ.top().m_time - chrono::system_clock::now());
         }
         else {
-            this_thread::sleep_for(chrono::milliseconds(100));
+            this_thread::sleep_for(chrono::milliseconds(200));
         }
     }
 }
 
-void DeviceManager::pushEventToDevice(shared_ptr<utils::Event> evt) {
+bool DeviceManager::pushEventToDevice(shared_ptr<utils::Event> evt) {
     lock_guard<mutex> lock(m_mutex);
     if (m_running) {
         m_queue.push(evt);
         m_condition.notify_one();    
-        utils::Log(utils::INFO, "Post an event...");
+        return true;
     }
     else {
         utils::Log(utils::ERROR, "Device: %s is not running...", m_name.c_str());
+        return false;
     }
 }
 
@@ -172,7 +184,16 @@ void DeviceManager::registerPollingTask(const string& sensorName, FetchFunc& fun
 }
 
 void DeviceManager::updateDevice() {
-//TODO
+    if (m_running) {
+        auto ev = make_shared<DeviceEvent>("update", ON);
+        utils::Log(utils::DEBUG, "Updating the deivce to %.2f...", m_version + 0.1);
+        pushEventToDevice(ev);
+        stop();
+        m_version += 0.1;
+    }
+    else {
+        utils::Log(utils::ERROR, "Failed to update, Device is off");
+    }
 }
 string DeviceManager::getLastUpdatedSensor() const {
     //TODO
