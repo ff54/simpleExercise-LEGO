@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 #include <map>
 #include "utils.hh"
 #include "deviceManager.hh"
@@ -19,7 +20,9 @@ class Sensor2 : public sensor::SensorSimulator {
 public:
     Sensor2(string name, shared_ptr<device::DeviceManager> dm, int freq) : SensorSimulator(name, dm, freq){}
     void myJob() {
-        sensor::SensorDataMap s = {{"sensor2/Length", to_string(rand() % 100)}, {"sensor2/Width", to_string(rand() % 100)}};
+        stringstream ss;
+        ss<< "sensor2/L"<<to_string(rand() % 10);
+        sensor::SensorDataMap s = {{ss.str(), to_string(rand() % 100)}, {"sensor2/Width", to_string(rand() % 100)}};
         auto ev = make_shared<sensor::SensorEvent>(m_name, s);
         m_dm->pushEventToDevice(ev);
     }
@@ -29,11 +32,11 @@ public:
 void help() {
     cout<<"'start'  to start the device "<<endl;
     cout<<"'stop'   to stop the device"<<endl;
-    cout<<"'post'   to post an event to device"<<endl;
     cout<<"'update' to update the device"<<endl;
     cout<<"'version'to show the version of device"<<endl;
     cout<<"'ss'     to start sensor simulators"<<endl;
     cout<<"'stop ss'to stop sensor simulators"<<endl;
+    cout<<"'print'  to print all data gathered by device"<<endl;
     cout<<"'fetch'  to register a repeated task to fetch data by device"<<endl;
     cout<<"'exit'   to exit the app"<<endl;
 }
@@ -43,6 +46,10 @@ shared_ptr<Sensor2> sensor2;
 
 void start() {
     d1->start();
+}
+
+void print() {
+    d1->printAllSensorData();
 }
 
 void ss() {
@@ -90,6 +97,7 @@ int main()
     cmdList["sstop"] = stopss;
     cmdList["fetch"] = fetch;
     cmdList["update"] = update;
+    cmdList["print"] = print;
     string cmd;
     utils::Log(utils::INFO, "type 'help' for more information");
     while (true) {

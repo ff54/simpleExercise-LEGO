@@ -86,6 +86,7 @@ public:
     Status getStatus() const {return m_status;}
     std::string getVersion() const {return std::to_string(m_version);}
     std::string getLastUpdatedSensor() const; 
+    void printAllSensorData() const; 
 private:
     DeviceManager();//singletone
     void run();

@@ -1,5 +1,5 @@
 #include <future>
-
+#include <iostream>
 #include "deviceManager.hh"
 #include "utils.hh"
 namespace device {
@@ -106,7 +106,7 @@ void DeviceManager::run() {
                     res.first->second.first = t;
                     for (auto& p : sensorEvt->data) {
                         char buf[20];
-                        strftime(buf, 20, "%d.%m.%Y %H:%M:%S", localtime(&t));
+                        strftime(buf, 20, "%Y.%m.%d %H:%M:%S", localtime(&t));
                         utils::Log(utils::INFO, "Get Data from %s # %s:%s @%s#",
                                     sensorEvt->name.c_str(), p.first.c_str(), p.second.c_str(), buf);
                         res.first->second.second[p.first] = p.second;
@@ -199,6 +199,24 @@ string DeviceManager::getLastUpdatedSensor() const {
     //TODO
     return "";
 } 
+
+void DeviceManager::printAllSensorData() const {
+    if (!m_running) {
+        utils::Log(utils::ERROR, "Device is off");
+    }
+    if (!m_cache.empty()) {
+        for (const auto& p1 : m_cache) {
+            for (const auto& p2 : p1.second.second) {
+                char buf[20];
+                strftime(buf, 20, "%Y.%m.%d %H:%M:%S", localtime(&p1.second.first));
+                cout<<"sensor: "<<p1.first<< " "<<p2.first <<" "<<p2.second<<" @" <<buf<<endl;
+            }
+        }
+    }
+    else {
+        utils::Log(utils::WARNING, "NO data, local cache is empty");
+    }
+}
 
 
 } //end of namespace device
