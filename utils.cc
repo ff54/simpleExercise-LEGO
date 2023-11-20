@@ -20,10 +20,10 @@ namespace {
 #define ANSI_COLOR_WHITE "\x1b[97m"
 #define ANSI_COLOR_RESET "\x1b[0m"
 const unsigned LOG_LEVEL_COUNT = 5;
-const char* prefix[LOG_LEVEL_COUNT] = {"ERROR ", "WARNING ", "DEBUG ", "INFO ", "ALL"};
-const char* colorList[LOG_LEVEL_COUNT] = {ANSI_COLOR_RED,  ANSI_COLOR_YELLOW, ANSI_COLOR_GREEN, ANSI_COLOR_CYAN, ANSI_COLOR_HIBLUE};
+const char* prefix[LOG_LEVEL_COUNT] = {"ERROR ", "WARNING ", "DEBUG ", "INFO ", "VERBOSE"};
+const char* colorList[LOG_LEVEL_COUNT] = {ANSI_COLOR_RED,  ANSI_COLOR_MAGENTA, ANSI_COLOR_GREEN, ANSI_COLOR_YELLOW, ANSI_COLOR_HIBLUE};
 
-static enum utils::LOG_LEVEL logLevel_g = utils::INFO;
+static enum utils::LOG_LEVEL logLevel_g = utils::VERBOSE;
 }
 namespace utils
 {
@@ -39,7 +39,7 @@ void Log(LOG_LEVEL level, const char* format, ...)
 {
     va_list arg;
 
-    if ((level > logLevel_g) || (level < ERROR) || (level > INFO)) {
+    if ((level > logLevel_g) || (level < ERROR) || (level > VERBOSE)) {
         return;
     }
 

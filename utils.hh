@@ -10,7 +10,7 @@ enum LOG_LEVEL
     WARNING,
     DEBUG,
     INFO,
-    ALL
+    VERBOSE
 };
 
 void Log(LOG_LEVEL level, const char* format, ...);

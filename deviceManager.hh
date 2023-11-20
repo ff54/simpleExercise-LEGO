@@ -48,22 +48,44 @@ struct DeviceEvent: public utils::Event  {
 class DeviceManager
 {
 public:
+    /**
+     * \brief fetch function, users need to implement their own version and register at \ref registerPollingTask.
+     * \note sensor::SensorDataMap& is output, DeviceManager will run the function repeatedly in anoter thread
+     *       and save data at sensor::SensorDataMap to its local cache
+     */
     typedef std::function<void(const std::string&, sensor::SensorDataMap&)> FetchFunc;
 
+    /**
+     * \brief get the DeviceManager instance.
+     */
     static std::shared_ptr<DeviceManager> instance();
     ~DeviceManager();
     DeviceManager(DeviceManager& rhs) = delete;
     DeviceManager(DeviceManager&& rhs) = delete;
 
+    /**
+     * \brief sensor or deivece itself may push events to the DeviceManager eventLoop. DeviceManager will
+     *        handle evt based on its type.
+     */
     void pushEventToDevice(std::shared_ptr<utils::Event> evt);
-    void registerPollingTask(const std::string& sensorName, FetchFunc& func, int second);
+
+    /**
+     * \brief      register a function/task to fetch sensor data in a fixed frequency.
+     * \param [in] sensorName the name of sensor
+     * \param [in] func       function to fech data from sensor or some whereelse \ref FetchFunc
+     * \param [in] n          run every n second
+     */
+    void registerPollingTask(const std::string& sensorName, FetchFunc& func, int n);
     void start();
     void stop();
     void setName(const std::string& name) {m_name = name;};
+    void updateDevice();//TODO
 
 
     std::string getName() const {return m_name;}
     Status getStatus() const {return m_status;}
+    std::string getVersion() const {return m_version;}
+    std::string getLastUpdatedSensor() const; 
 private:
     DeviceManager();//singletone
     void run();
@@ -81,6 +103,7 @@ private:
     //keep sensor name, sensor data and last updated time
     std::unordered_map<std::string, std::pair<std::time_t, sensor::SensorDataMap>> m_cache; 
     std::string m_name{"TestDevice"};
+    std::string m_version;
 };
 
 } //end of namespace device

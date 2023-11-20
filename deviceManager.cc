@@ -63,7 +63,7 @@ void DeviceManager::start() {
         m_scheduler = thread([&](){runScheduler();});
     }
     catch (exception& e) {
-        cout<<"caught an exception: "<<e.what()<<endl;
+        utils::Log(utils::ERROR, "Exception: %s ...", e.what());
     }
     m_thread.detach();
     m_scheduler.detach();
@@ -170,6 +170,14 @@ void DeviceManager::registerPollingTask(const string& sensorName, FetchFunc& fun
         m_taskVector.emplace_back(sensorName, func, second);
     }
 }
+
+void DeviceManager::updateDevice() {
+//TODO
+}
+string DeviceManager::getLastUpdatedSensor() const {
+    //TODO
+    return "";
+} 
 
 
 } //end of namespace device

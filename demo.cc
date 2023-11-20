@@ -20,12 +20,11 @@ int main()
     std::this_thread::sleep_for(1000ms);
     d1->pushEventToDevice(ev);
     device::DeviceManager::FetchFunc func =  [](const string& a, sensor::SensorDataMap&) {
-        utils::Log(utils::ERROR, string("fetching data from sensor1").c_str());
+        utils::Log(utils::VERBOSE, string("fetching data from sensor1").c_str());
         return;
     };
     d1->registerPollingTask("sensor1",func, 1);
     std::this_thread::sleep_for(4000ms);
     d1->stop();
-    d1->pushEventToDevice(ev);
     return 0;
 }
